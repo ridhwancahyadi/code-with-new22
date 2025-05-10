@@ -47,11 +47,13 @@ public class StudentService {
      */
     @Transactional
     public void addStudentWithProcedure(StudentData studentData) {
-        String sql = "CALL tambah_student(:id, :name, :balance)";
+        String sql = "CALL tambah_student(:name, :jurusan, :ipk, :tanggallahir, :balance)";
 
         entityManager.createNativeQuery(sql)
-                .setParameter("id", studentData.id())
                 .setParameter("name", studentData.name())
+                .setParameter("jurusan", studentData.jurusan())
+                .setParameter("ipk", studentData.ipk())
+                .setParameter("tanggallahir", studentData.tanggalLahir())
                 .setParameter("balance", getBalanceOrDefault(studentData.balance()))
                 .executeUpdate();
     }
@@ -64,11 +66,13 @@ public class StudentService {
      */
     @Transactional
     public int addStudentWithFunction(StudentData studentData) {
-        String sql = "SELECT fungsi_tambah_student(:id, :name, :balance)";
+        String sql = "SELECT fungsi_tambah_student(:name, :jurusan, :ipk, :tanggallahir, :balance)";
 
         Object result = entityManager.createNativeQuery(sql)
-                .setParameter("id", studentData.id())
                 .setParameter("name", studentData.name())
+                .setParameter("jurusan", studentData.jurusan())
+                .setParameter("ipk", studentData.ipk())
+                .setParameter("tanggallahir", studentData.tanggalLahir())
                 .setParameter("balance", getBalanceOrDefault(studentData.balance()))
                 .getSingleResult();
 
@@ -119,8 +123,11 @@ public class StudentService {
      */
     private StudentData mapToStudentData(Student student) {
         return new StudentData(
-                student.getId(),
+                // student.getId(),
                 student.getName(),
+                student.getJurusan(),
+                student.getIpk(),
+                student.getTanggalLahir(),
                 getBalanceOrDefault(student.getBalance()));
     }
 
@@ -134,7 +141,15 @@ public class StudentService {
         if (studentData.name() != null && !studentData.name().isEmpty()) {
             student.setName(studentData.name());
         }
-
+        if (studentData.jurusan() != null) {
+            student.setJurusan(studentData.jurusan());
+        }
+        if (studentData.ipk() != null) {
+            student.setIpk(studentData.ipk());
+        }
+        if (studentData.tanggalLahir() != null) {
+            student.setTanggalLahir(studentData.tanggalLahir());
+        }
         if (studentData.balance() != null) {
             student.setBalance(studentData.balance());
         }

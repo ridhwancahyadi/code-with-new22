@@ -1,5 +1,10 @@
 package org.acme.resource;
 
+import org.acme.dto.APIResponse;
+import org.acme.dto.APIResponseWithData;
+import org.acme.dto.StudentData;
+import org.acme.service.StudentService;
+
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -7,11 +12,6 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import java.math.BigDecimal;
 import java.util.List;
-
-import org.acme.dto.APIResponse;
-import org.acme.dto.APIResponseWithData;
-import org.acme.dto.StudentData;
-import org.acme.service.StudentService;
 
 /**
  * REST resource for managing student data
@@ -34,6 +34,7 @@ public class StudentResource {
      * @return Response containing list of students
      */
     @GET
+    @Path("all")
     public Response getStudents() {
         List<StudentData> students = studentService.getStudents();
         APIResponseWithData<List<StudentData>> response = new APIResponseWithData<>(
@@ -43,26 +44,14 @@ public class StudentResource {
         return Response.ok(response).build();
     }
 
-    /**
-     * Creates a new student using a stored procedure
-     * 
-     * @param student The student data to create
-     * @return Response indicating success or failure
-     */
     @POST
     @Path("/procedure")
     public Response addStudentWithProcedure(StudentData student) {
         studentService.addStudentWithProcedure(student);
         APIResponse response = new APIResponse(true, "Student created with procedure");
-        return Response.status(Status.CREATED).entity(response).build();
+        return Response.ok(response).build();
     }
 
-    /**
-     * Creates a new student using a database function
-     * 
-     * @param student The student data to create
-     * @return Response containing the created student with ID
-     */
     @POST
     @Path("/function")
     public Response addStudentWithFunction(StudentData student) {
@@ -70,14 +59,17 @@ public class StudentResource {
 
         if (newId != -1) {
             StudentData newStudent = new StudentData(
-                    (long) newId,
+                    // student.id(),
                     student.name(),
+                    student.jurusan(),
+                    student.ipk(),
+                    student.tanggalLahir(),
                     getBalanceOrDefault(student.balance()));
             APIResponseWithData<StudentData> response = new APIResponseWithData<>(
                     true,
                     "Student created successfully",
                     newStudent);
-            return Response.status(Status.CREATED).entity(response).build();
+            return Response.ok(response).build();
         } else {
             APIResponse response = new APIResponse(
                     false,
@@ -86,12 +78,6 @@ public class StudentResource {
         }
     }
 
-    /**
-     * Deletes a student by ID
-     * 
-     * @param id The ID of the student to delete
-     * @return Response indicating success or not found
-     */
     @DELETE
     @Path("/{id}")
     public Response deleteStudent(@PathParam("id") Long id) {
@@ -106,13 +92,6 @@ public class StudentResource {
         }
     }
 
-    /**
-     * Updates a student by ID
-     * 
-     * @param id          The ID of the student to update
-     * @param studentData The new student data
-     * @return Response containing the updated student data
-     */
     @PUT
     @Path("/{id}")
     public Response updateStudent(@PathParam("id") Long id, StudentData studentData) {
@@ -132,12 +111,6 @@ public class StudentResource {
         }
     }
 
-    /**
-     * Helper method to handle null balance values
-     * 
-     * @param balance The balance to check
-     * @return The balance or BigDecimal.ZERO if null
-     */
     private BigDecimal getBalanceOrDefault(BigDecimal balance) {
         return balance != null ? balance : BigDecimal.ZERO;
     }
